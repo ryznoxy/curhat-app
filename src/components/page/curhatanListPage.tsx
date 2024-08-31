@@ -36,6 +36,7 @@ export default function CurhatanListPage({ user }: any) {
   const [curhatanLists, setCurhatanLists] = useState<CurhatanList[]>([]);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
   const [likedHistoryLoading, setLikedHistoryLoading] = useState(true);
 
   const toaster = useToast();
@@ -50,7 +51,15 @@ export default function CurhatanListPage({ user }: any) {
     const fetchCurhatans = async () => {
       setIsLoading(true);
       const response = await fetch("/api/curhatan-lists");
+
+      if (!response.ok) {
+        setIsLoading(false);
+        setError(true);
+        return;
+      }
+
       const data = await response.json();
+
       setIsLoading(false);
       setCurhatanLists(data);
     };
