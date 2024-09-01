@@ -46,7 +46,9 @@ export default function CurhatanListPage({ user }: any) {
   useEffect(() => {
     const fetchCurhatans = async () => {
       setIsLoading(true);
-      const response = await fetch("/api/curhatan-lists");
+      const response = await fetch("/api/curhatan-lists", {
+        cache: "no-store",
+      });
 
       if (!response.ok) {
         setIsLoading(false);

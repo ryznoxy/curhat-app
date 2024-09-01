@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const curhatanList = await getCurhatanList();
 
   if (!curhatanList) {
-    return new NextResponse("Bad Request", { status: 400 });
+    return NextResponse.json({ msg: "Bad Request" }, { status: 400 });
   }
 
   const enhancedCurhatanList = [];
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     enhancedCurhatanList.push(enhancedCurhatan);
   }
 
-  return new NextResponse(JSON.stringify(enhancedCurhatanList), {
+  return NextResponse.json(enhancedCurhatanList, {
     status: 200,
   });
 }
