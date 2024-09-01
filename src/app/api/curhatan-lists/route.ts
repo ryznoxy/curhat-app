@@ -3,9 +3,6 @@ import { getCurhatanList } from "@/services/getCurhatanList";
 import { getUserByUUID } from "@/services/getUserByUUID";
 import { NextResponse } from "next/server";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const curhatanList = await getCurhatanList();
 
