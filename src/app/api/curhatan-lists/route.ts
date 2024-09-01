@@ -21,14 +21,12 @@ export async function GET(request: Request) {
     const user = await getUserByUUID(userUUID);
     const username = user?.name;
     const pfpUrl = user?.pfp;
-    const userEmail = user?.email;
 
     const enhancedCurhatan = {
       ...curhatan,
       user: {
         username,
         pfpUrl,
-        userEmail,
       },
       commentLength,
     };

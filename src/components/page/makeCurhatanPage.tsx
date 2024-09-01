@@ -55,7 +55,7 @@ export default function MakeCurhatanPage({ user }: any) {
       return;
     }
 
-    await fetch("/api/make-curhatan", {
+    const res = await fetch("/api/make-curhatan", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -66,6 +66,11 @@ export default function MakeCurhatanPage({ user }: any) {
         userId,
       }),
     });
+
+    if (!res.ok) {
+      console.error("Failed to make curhatan");
+      return;
+    }
 
     window.location.pathname = "/";
   };

@@ -13,9 +13,6 @@ import { dateFormatter } from "@/lib/dateFormatter";
 import { useToast } from "../ui/use-toast";
 import CurhatanListsLoading from "../loading/curhatanListsLoading";
 
-export const revalidate = 60;
-export const dynamic = "force-dynamic";
-
 type CurhatanList = {
   id: number;
   title: string;
@@ -26,7 +23,6 @@ type CurhatanList = {
   user: {
     username: string;
     pfpUrl: string;
-    userEmail: string;
   };
   commentLength: number;
   likes: number;

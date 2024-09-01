@@ -8,6 +8,5 @@ export type Curhatan = {
   user: {
     username: string;
     pfpUrl: string;
-    userEmail: string;
   };
 }

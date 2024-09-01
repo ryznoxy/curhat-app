@@ -25,7 +25,6 @@ type Curhatan = {
   user: {
     username: string;
     pfpUrl: string;
-    userEmail: string;
   };
   comments: commentList[];
   likes: number;
@@ -41,7 +40,6 @@ type commentList = {
   user: {
     username: string;
     pfpUrl: string;
-    userEmail: string;
   };
   likes: number;
 };

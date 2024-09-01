@@ -22,11 +22,10 @@ export async function GET(request: Request) {
 
   const username = user?.name;
   const pfpUrl = user?.pfp;
-  const userEmail = user?.email;
 
   const curhatanData = {
     ...curhatan,
-    user: { username, pfpUrl, userEmail },
+    user: { username, pfpUrl },
   };
 
   const comments = await getComments(curhatanId);
@@ -35,12 +34,11 @@ export async function GET(request: Request) {
     const user = await getUserByUUID(comment.userId);
     const username = user?.name;
     const pfpUrl = user?.pfp;
-    const userEmail = user?.email;
 
     const commentData = {
       ...comment,
 
-      user: { username, pfpUrl, userEmail },
+      user: { username, pfpUrl },
     };
     curhatanDetailArray.push(commentData);
   }
