@@ -179,7 +179,7 @@ export default function CurhatanListPage({ user }: any) {
       return;
     }
 
-    await fetch("/api/update-post", {
+    const res = await fetch("/api/update-post", {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -187,15 +187,31 @@ export default function CurhatanListPage({ user }: any) {
       body: JSON.stringify({ uuid, userId }),
     });
 
+    if (!res.ok) {
+      console.error("Failed to delete post");
+      toaster.toast({
+        title: "Failed to delete post",
+        description: "Please try again later",
+      });
+      return;
+    }
+
     setCurhatanLists((prev) =>
       prev.filter((curhatan) => curhatan.uuid !== uuid)
     );
   };
 
+  if (error)
+    return <p className="text-red-500">Failed to load curhatan lists</p>;
   if (isLoading) return <CurhatanListsLoading />;
 
   return (
     <div>
+      <div>
+        {curhatanLists?.length === 0 && (
+          <p className="text-center">Curhatan lists not found</p>
+        )}
+      </div>
       <div className="flex flex-col justify-center items-center">
         {curhatanLists?.map((curhatan: CurhatanList) => (
           <div
