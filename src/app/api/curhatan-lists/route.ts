@@ -10,31 +10,23 @@ export async function GET(request: Request) {
     return NextResponse.json({ msg: "Bad Request" }, { status: 400 });
   }
 
-  const enhancedCurhatanList = [];
+  const fetchPromises = curhatanList.map(async (curhatan) => {
+    const [comments, user] = await Promise.all([
+      getComments(curhatan.uuid),
+      getUserByUUID(curhatan.userId),
+    ]);
 
-  for (const curhatan of curhatanList) {
-    const userUUID = curhatan.userId;
-
-    const comment = await getComments(curhatan.uuid);
-    const commentLength = comment.length;
-
-    const user = await getUserByUUID(userUUID);
-    const username = user?.name;
-    const pfpUrl = user?.pfp;
-
-    const enhancedCurhatan = {
+    return {
       ...curhatan,
+      commentLength: comments.length,
       user: {
-        username,
-        pfpUrl,
+        username: user?.name,
+        pfpUrl: user?.pfp,
       },
-      commentLength,
     };
-
-    enhancedCurhatanList.push(enhancedCurhatan);
-  }
-
-  return NextResponse.json(enhancedCurhatanList, {
-    status: 200,
   });
+
+  const enhancedCurhatanList = await Promise.all(fetchPromises);
+
+  return NextResponse.json(enhancedCurhatanList, { status: 200 });
 }

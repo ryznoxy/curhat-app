@@ -48,6 +48,9 @@ export default function CurhatanListPage({ user }: any) {
       setIsLoading(true);
       const response = await fetch("/api/curhatan-lists", {
         cache: "no-store",
+        next: {
+          revalidate: 60,
+        },
       });
 
       if (!response.ok) {
