@@ -1,9 +1,9 @@
-import { signOut } from "@/services/signOut";
+// import { signOut } from "@/services/signOut";
 import React from "react";
 
 export default function LogoutPage() {
   const handleLogout = async () => {
-    await signOut();
+    // await signOut();
   };
 
   return (

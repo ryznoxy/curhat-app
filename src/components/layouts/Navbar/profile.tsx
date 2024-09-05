@@ -1,8 +1,9 @@
 "use client";
 import useCallbackUrl from "@/hooks/useCallbackUrl";
-import { login, logout } from "@/lib/auth";
+// import { login, logout } from "@/lib/auth";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useRef, useEffect, useState } from "react";
 import { BiLogIn, BiLogOut } from "react-icons/bi";
 import { FiEdit } from "react-icons/fi";
@@ -16,17 +17,31 @@ export default function Profile({ user }: any) {
   const username = user?.name;
   const pfpUrl = user?.image;
 
-  // const handleLogIn = async () => {
-  //   login();
-  // };
+  const router = useRouter();
 
   const handleLogOut = async () => {
-    logout();
+    router.push("/auth/logout");
   };
 
   const handleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
   };
+
+  useEffect(() => {
+    const saveUserToDB = async () => {
+      const res = await fetch("/api/save-user-to-db", {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        console.error("Failed to save user to DB");
+      }
+    };
+
+    if (user) {
+      saveUserToDB();
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -7,5 +7,5 @@ export const signOut = async () => {
     return console.log(error);
   }
 
-  window.location.reload();
+  // window.location.reload();
 };

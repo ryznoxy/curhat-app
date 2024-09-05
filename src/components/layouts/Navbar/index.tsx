@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Profile from "./profile";
 import Link from "next/link";
 import ThemeToggle from "./themeToggle";
@@ -25,7 +25,9 @@ export default function Navbar() {
 
           <div className="inline-flex items-center gap-2">
             <ThemeToggle />
-            <Profile user={user} />
+            <Suspense fallback={<div>Loading...</div>}>
+              <Profile user={user} />
+            </Suspense>
           </div>
         </div>
       </div>
