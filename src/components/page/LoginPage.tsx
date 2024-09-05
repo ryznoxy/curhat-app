@@ -1,13 +1,13 @@
 "use client";
 import React, { useEffect } from "react";
-import { signInWithGithub } from "@/services/signIn";
+// import { signInWithGithub } from "@/services/signIn";
 import { saveUserToDB } from "@/services/saveUserToDB";
 import { FaGithub } from "react-icons/fa6";
 
 export default function LoginPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSignIn = async () => {
-    await signInWithGithub();
+    // login();
   };
 
   useEffect(() => {

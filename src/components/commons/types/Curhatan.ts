@@ -3,10 +3,10 @@ export type Curhatan = {
   title: string;
   content: string;
   createdAt: string;
-  userId: string;
+  userEmail: string;
   uuid: string;
   user: {
     username: string;
     pfpUrl: string;
   };
-}
+};

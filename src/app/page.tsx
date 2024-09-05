@@ -1,19 +1,15 @@
 "use client";
 import CurhatanListPage from "@/components/page/curhatanListPage";
-import LoginPage from "@/components/page/LoginPage";
-import LogoutPage from "@/components/page/LogoutPage";
-import MakeCurhatanPage from "@/components/page/makeCurhatanPage";
-import UseAuth from "@/hooks/useAuth";
-import { signOut } from "@/services/signOut";
+import { useUserSession } from "@/lib/auth";
 
 export default function Home() {
-  const { user }: any = UseAuth();
+  const { user }: any = useUserSession();
+
+  //bikin custom pages untuk next auth
 
   return (
     <div className="my-4">
-      <div>
-        <CurhatanListPage user={user} />
-      </div>
+      <CurhatanListPage user={user} />
     </div>
   );
 }

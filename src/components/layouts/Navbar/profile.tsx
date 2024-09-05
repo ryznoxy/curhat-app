@@ -1,40 +1,48 @@
 "use client";
-import UseAuth from "@/hooks/useAuth";
-import { signInWithGithub } from "@/services/signIn";
-import { signOut } from "@/services/signOut";
+import useCallbackUrl from "@/hooks/useCallbackUrl";
+// import { login, logout } from "@/lib/auth";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useRef, useEffect, useState } from "react";
-import { BiExit, BiLogIn, BiLogOut } from "react-icons/bi";
+import { BiLogIn, BiLogOut } from "react-icons/bi";
 import { FiEdit } from "react-icons/fi";
 
-export default function Profile() {
-  const { user }: any = UseAuth();
+export default function Profile({ user }: any) {
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State to track dropdown visibility
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const callbackUrl = useCallbackUrl();
 
   const username = user?.name;
-  const pfpUrl = user?.pfpUrl;
+  const pfpUrl = user?.image;
 
-  const handleLogIn = async () => {
-    await signInWithGithub();
-  };
+  const router = useRouter();
 
   const handleLogOut = async () => {
-    const yes = confirm("Are you sure you want to logout?");
-    if (!yes) {
-      return;
-    }
-
-    await signOut();
+    router.push("/auth/logout");
   };
 
   const handleDropdown = () => {
-    // Toggle dropdown visibility using state
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  // Handle click outside to close the dropdown
+  useEffect(() => {
+    const saveUserToDB = async () => {
+      const res = await fetch("/api/save-user-to-db", {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        console.error("Failed to save user to DB");
+      }
+    };
+
+    if (user) {
+      saveUserToDB();
+    }
+  }, [user]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -58,7 +66,7 @@ export default function Profile() {
         {user && (
           <Link
             href="/new"
-            className="inline-flex items-center bg-neutral-500 dark:bg-neutral-600 hover:bg-neutral-700 dark:hover:bg-neutral-800 text-white text-sm font-medium p-2 md:py-2 md:px-4 rounded transition-colors duration-300"
+            className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium p-2 md:py-2 md:px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
           >
             <FiEdit className="mr-1" size={20} />
             New
@@ -69,18 +77,24 @@ export default function Profile() {
       <div>
         {!user ? (
           <div className="p-2">
-            <button
+            {/* <button
               onClick={() => {
                 handleLogIn();
               }}
               className="py-2 px-6 bg-neutral-700 hover:bg-neutral-900 dark:hover:bg-neutral-800 text-white text-sm font-medium rounded inline-flex items-center hover:scale-105 transition-all duration-300"
             >
               <BiLogIn className="mr-1" size={20} /> Login
-            </button>
+            </button> */}
+            <Link
+              href={`/auth/login?callbackUrl=${callbackUrl}`}
+              className="py-2 px-6 bg-neutral-700 hover:bg-neutral-900 dark:hover:bg-neutral-800 text-white text-sm font-medium rounded inline-flex items-center hover:scale-105 transition-all duration-300"
+            >
+              <BiLogIn className="mr-1" size={20} /> Login
+            </Link>
           </div>
         ) : (
           <div className="relative">
-            <div className="overflow-hidden rounded-full border-2 border-neutral-400 w-10 md:w-fit">
+            <div className="overflow-hidden rounded-full border-2 border-neutral-400 w-12 md:w-fit">
               <Image
                 src={pfpUrl ?? "/pfp.svg"}
                 alt="profile"
@@ -102,12 +116,23 @@ export default function Profile() {
                   ? username.slice(0, 17) + "..."
                   : username) ?? "username"}
               </p>
+              {/* <div className="px-2 pb-2 border-b">
+                {user && (
+                  <Link
+                    href="/new"
+                    className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium py-2 px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
+                  >
+                    <FiEdit className="mr-1" size={20} />
+                    New
+                  </Link>
+                )}
+              </div> */}
               <div className="px-2 pb-2">
                 <button
                   onClick={() => {
                     handleLogOut();
                   }}
-                  className="inline-flex items-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium py-2 px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
+                  className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium py-2 px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
                 >
                   <BiLogOut className="mr-1" size={20} /> Logout
                 </button>

@@ -2,9 +2,14 @@
 import React, { useState } from "react";
 import { z } from "zod";
 import BackButton from "../ui/BackButton";
+import { useRouter } from "next/navigation";
 
 export default function MakeCurhatanPage({ user }: any) {
-  const userId = user?.uuid;
+  // const userId = user?.uuid;
+
+  const userEmail = user?.email;
+
+  const router = useRouter();
 
   const [errorMessages, setErrorMessages] = useState<{
     title?: string;
@@ -51,7 +56,7 @@ export default function MakeCurhatanPage({ user }: any) {
 
     const { title, content } = result.data;
 
-    if (!userId) {
+    if (!userEmail) {
       return;
     }
 
@@ -63,7 +68,7 @@ export default function MakeCurhatanPage({ user }: any) {
       body: JSON.stringify({
         title,
         content,
-        userId,
+        userEmail,
       }),
     });
 
@@ -72,10 +77,10 @@ export default function MakeCurhatanPage({ user }: any) {
       return;
     }
 
-    window.location.pathname = "/";
+    router.push("/");
   };
 
-  if (!userId) {
+  if (!userEmail) {
     return null;
   }
 
