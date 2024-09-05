@@ -1,25 +1,20 @@
 "use client";
 import MakeCommentPage from "@/components/page/makeCommentPage";
-import UseAuth from "@/hooks/useAuth";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import {
-  BiHeart,
-  BiLike,
-  BiSolidHeart,
-  BiSolidLike,
-  BiSolidTrash,
-} from "react-icons/bi";
+import { BiHeart, BiSolidHeart, BiSolidTrash } from "react-icons/bi";
 import { dateFormatter } from "@/lib/dateFormatter";
 import BackButton from "@/components/ui/BackButton";
 import { useToast } from "@/components/ui/use-toast";
 import CurhatanDetailLoading from "@/components/loading/curhatanDetailLoading";
+import { useUserSession } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
 type Curhatan = {
   id: number;
   title: string;
   content: string;
-  userId: string;
+  userEmail: string;
   createdAt: string;
   uuid: string;
   user: {
@@ -33,7 +28,7 @@ type Curhatan = {
 type commentList = {
   id: number;
   content: string;
-  userId: string;
+  userEmail: string;
   postId: string;
   uuid: string;
   createdAt: string;
@@ -45,10 +40,11 @@ type commentList = {
 };
 
 export default function CurhatanDetail({ params }: any) {
-  const { user }: any = UseAuth();
-  const userId = user?.uuid;
+  const { user }: any = useUserSession();
+  const userEmail = user?.email;
 
   const toaster = useToast();
+  const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -59,7 +55,7 @@ export default function CurhatanDetail({ params }: any) {
 
   const curhatanUuid = params.slug;
 
-  const isAuthor = curhatan?.userId === userId;
+  const isAuthor = curhatan?.userEmail === userEmail;
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -81,7 +77,7 @@ export default function CurhatanDetail({ params }: any) {
       setIsLoading(false);
       setCurhatan(data);
 
-      if (!userId) {
+      if (!userEmail) {
         setLikedComments([]);
         setLikedPosts([]);
         setLikedHistoryLoading(false);
@@ -89,9 +85,13 @@ export default function CurhatanDetail({ params }: any) {
       }
 
       setLikedHistoryLoading(true);
-      const likeHistoryResponse = await fetch(
-        `/api/like-history?userId=${userId}`
-      );
+      const likeHistoryResponse = await fetch(`/api/like-history`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userEmail }),
+      });
 
       const likeHistoryData = await likeHistoryResponse.json();
       setLikedHistoryLoading(false);
@@ -104,14 +104,14 @@ export default function CurhatanDetail({ params }: any) {
     };
 
     fetchDetail();
-  }, [curhatanUuid, userId]);
+  }, [curhatanUuid, userEmail]);
 
   const addLike = async (
     uuid: string,
-    userId: string,
+    userEmail: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userId) {
+    if (!userEmail) {
       toaster.toast({
         title: "Failed to add like",
         description: "Please login first",
@@ -124,7 +124,7 @@ export default function CurhatanDetail({ params }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uuid, userId, postOrComment }),
+      body: JSON.stringify({ uuid, userEmail, postOrComment }),
     });
 
     if (!respone.ok) {
@@ -154,10 +154,10 @@ export default function CurhatanDetail({ params }: any) {
 
   const removeLike = async (
     uuid: string,
-    userId: string,
+    userEmail: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userId) {
+    if (!userEmail) {
       return;
     }
 
@@ -166,7 +166,7 @@ export default function CurhatanDetail({ params }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uuid, userId, postOrComment }),
+      body: JSON.stringify({ uuid, userEmail, postOrComment }),
     });
 
     if (!response.ok) {
@@ -195,7 +195,7 @@ export default function CurhatanDetail({ params }: any) {
   };
 
   const deleteComment = async (commentId: string) => {
-    if (!userId) {
+    if (!userEmail) {
       return;
     }
 
@@ -209,7 +209,7 @@ export default function CurhatanDetail({ params }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ commentId, userId }),
+      body: JSON.stringify({ commentId, userEmail }),
     });
 
     if (!res.ok) {
@@ -234,7 +234,7 @@ export default function CurhatanDetail({ params }: any) {
       <div className="text-red-500 w-full h-80 flex flex-col items-center justify-center">
         Curhatan not found
         <button
-          onClick={() => window.location.replace("/")}
+          onClick={() => router.push("/")}
           className="mt-4 px-4 py-2 bg-neutral-700 text-white rounded-md"
         >
           Home
@@ -275,8 +275,8 @@ export default function CurhatanDetail({ params }: any) {
           <button
             onClick={() =>
               likedPosts.includes(curhatan.uuid)
-                ? removeLike(curhatan.uuid, userId, "post")
-                : addLike(curhatan.uuid, userId, "post")
+                ? removeLike(curhatan.uuid, userEmail, "post")
+                : addLike(curhatan.uuid, userEmail, "post")
             }
             disabled={likedHistoryLoading}
             className="disabled:cursor-not-allowed hover:scale-105 transition-all duration-300"
@@ -303,7 +303,7 @@ export default function CurhatanDetail({ params }: any) {
         {isLoading ? (
           <span className="block w-full h-6 bg-neutral-400 rounded-md animate-pulse"></span>
         ) : (
-          <MakeCommentPage postId={curhatan.uuid} userId={userId} />
+          <MakeCommentPage postId={curhatan.uuid} userEmail={userEmail} />
         )}
       </div>
 
@@ -345,8 +345,8 @@ export default function CurhatanDetail({ params }: any) {
               <button
                 onClick={() =>
                   likedComments.includes(comment.uuid)
-                    ? removeLike(comment.uuid, userId, "comment")
-                    : addLike(comment.uuid, userId, "comment")
+                    ? removeLike(comment.uuid, userEmail, "comment")
+                    : addLike(comment.uuid, userEmail, "comment")
                 }
                 disabled={likedHistoryLoading}
                 className="disabled:cursor-not-allowed hover:scale-105 transition-all duration-300"

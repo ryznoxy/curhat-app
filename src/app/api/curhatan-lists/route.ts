@@ -1,6 +1,7 @@
 import { getComments } from "@/services/Comments";
 import { getCurhatanList } from "@/services/getCurhatanList";
-import { getUserByUUID } from "@/services/getUserByUUID";
+import { getUserByEmail } from "@/services/getUserByEmail";
+
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   const fetchPromises = curhatanList.map(async (curhatan) => {
     const [comments, user] = await Promise.all([
       getComments(curhatan.uuid),
-      getUserByUUID(curhatan.userId),
+      getUserByEmail(curhatan.userEmail),
     ]);
 
     return {

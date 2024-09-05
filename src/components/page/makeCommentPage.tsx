@@ -1,18 +1,21 @@
 import React, { useRef } from "react";
 import { IoSend } from "react-icons/io5";
 import { useToast } from "../ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const emojis = ["👍", "👎", "❤️", "😂", "😭", "😡", "🤬", "😩", "😥"];
 
 export default function MakeCommentPage({
   postId,
-  userId,
+  userEmail,
 }: {
   postId: string;
-  userId: string;
+  userEmail: string;
 }) {
   const toaster = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,8 +26,8 @@ export default function MakeCommentPage({
       typeof content !== "string" ||
       content === "" ||
       postId === "" ||
-      userId === "" ||
-      !userId
+      userEmail === "" ||
+      !userEmail
     ) {
       return toaster.toast({
         title: "Error",
@@ -37,7 +40,7 @@ export default function MakeCommentPage({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content, postId, userId }),
+      body: JSON.stringify({ content, postId, userEmail }),
     });
 
     if (!response.ok) {
@@ -53,7 +56,7 @@ export default function MakeCommentPage({
       inputRef.current.value = "";
     }
 
-    window.location.reload();
+    router.refresh();
   };
 
   return (
@@ -87,7 +90,7 @@ export default function MakeCommentPage({
           <button
             type="submit"
             className="ml-1 p-2 border rounded-lg bg-neutral-700 text-white disabled:bg-neutral-300 disabled:cursor-not-allowed"
-            disabled={postId === "" || userId === "" || !userId}
+            disabled={postId === "" || userEmail === "" || !userEmail}
           >
             <IoSend className="text-2xl" />
           </button>

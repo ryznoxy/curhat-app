@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
 
-export const getUserByUUID = async (uuid: string) => {
+export const getUserByEmail = async (email: string) => {
   return await prisma.user.findUnique({
     where: {
-      uuid,
+      email,
     },
   });
 };
