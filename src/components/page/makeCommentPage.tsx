@@ -7,10 +7,10 @@ const emojis = ["👍", "👎", "❤️", "😂", "😭", "😡", "🤬", "😩"
 
 export default function MakeCommentPage({
   postId,
-  userEmail,
+  userUuid,
 }: {
   postId: string;
-  userEmail: string;
+  userUuid: string;
 }) {
   const toaster = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,8 +26,8 @@ export default function MakeCommentPage({
       typeof content !== "string" ||
       content === "" ||
       postId === "" ||
-      userEmail === "" ||
-      !userEmail
+      userUuid === "" ||
+      !userUuid
     ) {
       return toaster.toast({
         title: "Error",
@@ -40,7 +40,7 @@ export default function MakeCommentPage({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content, postId, userEmail }),
+      body: JSON.stringify({ content, postId, userUuid }),
     });
 
     if (!response.ok) {
@@ -60,7 +60,7 @@ export default function MakeCommentPage({
   };
 
   return (
-    <div className="my-4">
+    <div className="fixed bottom-0 right-0 p-2 w-full backdrop-blur bg-white/50 dark:bg-black/50 border-t md:my-4 md:static md:p-0  md:bg-transparent md:backdrop-blur-0 md:border-none">
       <div>
         <div className="flex space-x-2">
           {emojis.map((emoji) => (
@@ -82,15 +82,15 @@ export default function MakeCommentPage({
             type="text"
             id="content"
             name="content"
-            className="w-full border px-3 py-2 rounded-lg"
+            className="w-full border px-3 py-2 rounded-xl"
             placeholder="Comment..."
             ref={inputRef}
           />
 
           <button
             type="submit"
-            className="ml-1 p-2 border rounded-lg bg-neutral-700 text-white disabled:bg-neutral-300 disabled:cursor-not-allowed"
-            disabled={postId === "" || userEmail === "" || !userEmail}
+            className="ml-1 p-2 border rounded-xl bg-neutral-700 text-white disabled:bg-neutral-300 dark:disabled:bg-neutral-400 disabled:cursor-not-allowed"
+            disabled={postId === "" || userUuid === "" || !userUuid}
           >
             <IoSend className="text-2xl" />
           </button>

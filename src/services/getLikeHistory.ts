@@ -1,9 +1,9 @@
 import prisma from "@/lib/prisma";
 
-const getLikeHistory = async (userEmail: string) => {
+const getLikeHistory = async (userUuid: string) => {
   const likeHistory = await prisma.likeHistory.findMany({
     where: {
-      userEmail,
+      userUuid,
     },
     include: {
       post: true,

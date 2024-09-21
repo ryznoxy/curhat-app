@@ -3,19 +3,19 @@ import prisma from "@/lib/prisma";
 interface CurhatanProps {
   content: string;
   title: string;
-  userEmail: string;
+  userUuid: string;
 }
 
 export const makeCurhatan = async ({
   content,
   title,
-  userEmail,
+  userUuid,
 }: CurhatanProps) => {
   return await prisma.post.create({
     data: {
       content,
       title,
-      userEmail,
+      userUuid,
       createdAt: new Date(),
       updatedAt: new Date(),
     },

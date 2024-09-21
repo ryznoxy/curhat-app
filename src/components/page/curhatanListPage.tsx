@@ -8,9 +8,9 @@ import {
   BiSolidHeart,
   BiTrash,
 } from "react-icons/bi";
-import { FiMessageCircle } from "react-icons/fi";
+import { FiFlag, FiMessageCircle, FiTrash, FiX } from "react-icons/fi";
 import { dateFormatter } from "@/lib/dateFormatter";
-import { useToast } from "../ui/use-toast";
+import { toast, useToast } from "../ui/use-toast";
 import CurhatanListsLoading from "../loading/curhatanListsLoading";
 import useSWR from "swr";
 import { ReasonList, report } from "@/services/Report";
@@ -24,6 +24,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
+import { IoAlert } from "react-icons/io5";
+import { addLike, removeLike } from "@/utils/LikeService";
 
 type CurhatanList = {
   id: number;
@@ -31,6 +33,7 @@ type CurhatanList = {
   content: string;
   createdAt: string;
   userEmail: string;
+  userUuid: string;
   uuid: string;
   user: {
     username: string;
@@ -46,7 +49,14 @@ export default function CurhatanListPage({ user }: any) {
   // const [isLoading, setIsLoading] = useState(false);
   // const [error, setError] = useState(false);
   const [likedHistoryLoading, setLikedHistoryLoading] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState({
+    open: false,
+    id: "",
+  });
+  const [likedAnimate, setLikedAnimate] = useState({
+    liked: false,
+    id: "",
+  });
 
   const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -54,11 +64,12 @@ export default function CurhatanListPage({ user }: any) {
 
   const toaster = useToast();
 
+  const userUuid = user?.uuid;
   const userEmail = user?.email;
   const userName = user?.name;
 
-  const isAuthor = (email: string) => {
-    return email === userEmail;
+  const isAuthor = (uuid: string) => {
+    return uuid === userUuid;
   };
 
   useEffect(() => {
@@ -93,20 +104,20 @@ export default function CurhatanListPage({ user }: any) {
 
   useEffect(() => {
     const fetchLikedPosts = async () => {
-      if (!userEmail) {
+      if (!userUuid) {
         setLikedPosts([]);
         setLikedHistoryLoading(false);
         return;
       }
 
       setLikedHistoryLoading(true);
-      await userEmail;
+      await userUuid;
       const likeHistoryResponse = await fetch(`/api/like-history`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userEmail }),
+        body: JSON.stringify({ userUuid }),
       });
 
       const likeHistoryData = await likeHistoryResponse.json();
@@ -116,34 +127,41 @@ export default function CurhatanListPage({ user }: any) {
       setLikedHistoryLoading(false);
     };
     fetchLikedPosts();
-  }, [userEmail]);
+  }, [userUuid]);
 
-  const addLike = async (
+  const handleLikeAnimate = (uuid: string) => {
+    setLikedAnimate({ liked: true, id: uuid });
+    setTimeout(() => {
+      setLikedAnimate({ liked: false, id: uuid });
+    }, 3000);
+  };
+
+  const toggleModal = (id: string) => {
+    setIsOpen({
+      ...isOpen,
+      open: !isOpen.open,
+      id,
+    });
+  };
+
+  const handleAddLike = async (
     uuid: string,
-    userEmail: string,
+    userUuid: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userEmail) {
+    if (!userUuid) {
       toaster.toast({
-        title: "Failed to add like",
-        description: "Please login first",
+        title: "Please login first",
       });
       return;
     }
 
-    const respone = await fetch("/api/update-like", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ uuid, userEmail, postOrComment }),
-    });
+    const result: any = await addLike(uuid, userUuid, postOrComment);
 
-    if (!respone.ok) {
+    if (!result.success) {
       console.error("Failed to add like");
       toaster.toast({
-        title: "Failed to add like",
-        description: "Please try again later",
+        title: result.message,
       });
       return;
     }
@@ -157,31 +175,29 @@ export default function CurhatanListPage({ user }: any) {
         )
       );
       setLikedPosts([...likedPosts, uuid]);
+
+      handleLikeAnimate(uuid);
     }
   };
 
-  const removeLike = async (
+  const handleRemoveLike = async (
     uuid: string,
-    userEmail: string,
+    userUuid: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userEmail) {
+    if (!userUuid) {
+      toaster.toast({
+        title: "Please login first",
+      });
       return;
     }
 
-    const response = await fetch("/api/update-like", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ uuid, userEmail, postOrComment }),
-    });
+    const result: any = await removeLike(uuid, userUuid, postOrComment);
 
-    if (!response.ok) {
+    if (!result.success) {
       console.error("Failed to remove like");
       toaster.toast({
-        title: "Failed to remove like",
-        description: "Please try again later",
+        title: result.message,
       });
       return;
     }
@@ -199,7 +215,7 @@ export default function CurhatanListPage({ user }: any) {
   };
 
   const deletePost = async (uuid: string) => {
-    if (!userEmail) {
+    if (!userUuid) {
       return;
     }
 
@@ -213,7 +229,7 @@ export default function CurhatanListPage({ user }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uuid, userEmail }),
+      body: JSON.stringify({ uuid, userUuid }),
     });
 
     if (!res.ok) {
@@ -231,7 +247,7 @@ export default function CurhatanListPage({ user }: any) {
   };
 
   const handleReport = async ({ postId }: { postId: string }) => {
-    if (!userEmail) {
+    if (!userUuid) {
       return;
     }
     const yes = confirm("Are you sure you want to report this post?");
@@ -241,20 +257,28 @@ export default function CurhatanListPage({ user }: any) {
 
     const reason = ReasonList[Math.floor(Math.random() * ReasonList.length)];
 
-    const reportRespone = await report(postId, userName, userEmail, reason);
+    const reportRespone = await report(postId, userName, userUuid, reason);
     if (reportRespone && reportRespone.isError) {
       toaster.toast({
         title: "Failed to report post",
         description: "Please try again later",
       });
-      setIsOpen(false);
+      setIsOpen({
+        ...isOpen,
+        open: false,
+        id: "",
+      });
       return;
     } else {
       toaster.toast({
         title: "Post reported",
         description: "Thank you for your report",
       });
-      setIsOpen(false);
+      setIsOpen({
+        ...isOpen,
+        open: false,
+        id: "",
+      });
       return;
     }
   };
@@ -270,14 +294,14 @@ export default function CurhatanListPage({ user }: any) {
           <p className="text-center">Curhatan lists not found</p>
         )}
       </div>
-      <div className="flex flex-col justify-center items-center">
+      <div className="flex flex-col justify-center items-center mb-4">
         {curhatanLists?.map((curhatan: CurhatanList) => (
           <div
             key={curhatan.uuid}
-            className="border rounded-2xl my-4 p-4 w-full relative"
+            className="border rounded-3xl my-2 p-4 w-full relative"
           >
             <div className="absolute top-6 right-6">
-              <Dialog onOpenChange={(open) => setIsOpen(open)}>
+              {/* <Dialog onOpenChange={(open) => setIsOpen(open)}>
                 <DialogTrigger>
                   <BiDotsHorizontalRounded size={24} />
                 </DialogTrigger>
@@ -295,7 +319,7 @@ export default function CurhatanListPage({ user }: any) {
                     >
                       Report
                     </button>
-                    {isAuthor(curhatan.userEmail) && (
+                    {isAuthor(curhatan.userUuid) && (
                       <button
                         className="border w-full px-4 py-2 rounded-sm bg-red-500 text-white"
                         onClick={() => deletePost(curhatan.uuid)}
@@ -312,8 +336,43 @@ export default function CurhatanListPage({ user }: any) {
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
-              </Dialog>
+              </Dialog> */}
+              <button
+                onClick={() => toggleModal(curhatan.uuid)}
+                className="hover:scale-110 rounded-full p-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-300"
+              >
+                {isOpen.open && isOpen.id === curhatan.uuid ? (
+                  <FiX size={20} />
+                ) : (
+                  <BiDotsHorizontalRounded size={24} />
+                )}
+              </button>
             </div>
+            {isOpen.open && isOpen.id === curhatan.uuid && (
+              <div
+                className={`absolute top-14 right-6 bg-neutral-50 dark:bg-neutral-900 border rounded-xl text-sm`}
+              >
+                <div className=" w-full">
+                  <button
+                    className="flex gap-2  px-6 py-1 m-1 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                    onClick={() => handleReport({ postId: curhatan.uuid })}
+                  >
+                    <FiFlag size={20} /> Report
+                  </button>
+                </div>
+                {isAuthor(curhatan.userUuid) && (
+                  <div className="border-t w-full">
+                    <button
+                      className="flex gap-2  px-6 py-1 m-1 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                      onClick={() => deletePost(curhatan.uuid)}
+                    >
+                      <FiTrash size={20} /> Delete
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex items-center w-full">
               <Image
                 src={curhatan.user.pfpUrl}
@@ -342,8 +401,8 @@ export default function CurhatanListPage({ user }: any) {
                 <button
                   onClick={() =>
                     likedPosts.includes(curhatan.uuid)
-                      ? removeLike(curhatan.uuid, userEmail, "post")
-                      : addLike(curhatan.uuid, userEmail, "post")
+                      ? handleRemoveLike(curhatan.uuid, userUuid, "post")
+                      : handleAddLike(curhatan.uuid, userUuid, "post")
                   }
                   disabled={likedHistoryLoading}
                   className="disabled:cursor-not-allowed hover:scale-105 transition-transform duration-300"
@@ -354,9 +413,19 @@ export default function CurhatanListPage({ user }: any) {
                     }`}
                   >
                     {likedPosts.includes(curhatan.uuid) ? (
-                      <BiSolidHeart className="mr-1 text-red-500" size={32} />
+                      <BiSolidHeart
+                        className={`mr-1 text-red-500 rounded-full p-1  hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                          likedAnimate.liked &&
+                          likedAnimate.id === curhatan.uuid &&
+                          "animate-fade-scale"
+                        }`}
+                        size={40}
+                      />
                     ) : (
-                      <BiHeart className="mr-1" size={32} />
+                      <BiHeart
+                        className="mr-1  rounded-full p-1 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        size={40}
+                      />
                     )}
                     {!likedHistoryLoading && curhatan?.likes > 0
                       ? curhatan.likes
@@ -368,7 +437,10 @@ export default function CurhatanListPage({ user }: any) {
                 href={`/curhatan-detail/${curhatan.uuid}`}
                 className="inline-flex items-center mb-1 hover:scale-105 transition-transform duration-300 ease-in-out"
               >
-                <FiMessageCircle size={28} className="mr-1" />
+                <FiMessageCircle
+                  size={40}
+                  className="mr-1 hover:bg-neutral-100 p-1 rounded-full text-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                />
                 <h1>
                   {curhatan.commentLength === 0 ? null : curhatan.commentLength}
                 </h1>

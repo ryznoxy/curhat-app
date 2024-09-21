@@ -7,7 +7,8 @@ import { useRouter } from "next/navigation";
 export default function MakeCurhatanPage({ user }: any) {
   // const userId = user?.uuid;
 
-  const userEmail = user?.email;
+  const userUuid = user?.uuid;
+
 
   const router = useRouter();
 
@@ -56,7 +57,7 @@ export default function MakeCurhatanPage({ user }: any) {
 
     const { title, content } = result.data;
 
-    if (!userEmail) {
+    if (!userUuid) {
       return;
     }
 
@@ -68,7 +69,7 @@ export default function MakeCurhatanPage({ user }: any) {
       body: JSON.stringify({
         title,
         content,
-        userEmail,
+        userUuid,
       }),
     });
 
@@ -80,7 +81,7 @@ export default function MakeCurhatanPage({ user }: any) {
     router.push("/");
   };
 
-  if (!userEmail) {
+  if (!userUuid) {
     return null;
   }
 

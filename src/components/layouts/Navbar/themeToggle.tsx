@@ -7,7 +7,10 @@ export default function ThemeToggle() {
   const { resolvedTheme: themes, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const ICONSIZE = 20;
+  const ICONSIZE = 32;
+
+  const CLASSNAMEFORICON =
+    "p-2 rounded-xl bg-neutral-200 dark:bg-neutral-800 border hover:bg-neutral-300 dark:hover:bg-neutral-700 transition-colors duration-300";
 
   useEffect(() => setMounted(true), []);
 
@@ -20,9 +23,9 @@ export default function ThemeToggle() {
   return (
     <button onClick={handleToggle}>
       {themes === "light" ? (
-        <BiMoon size={ICONSIZE} />
+        <BiMoon size={ICONSIZE} className={CLASSNAMEFORICON} />
       ) : (
-        <BiSun size={ICONSIZE} />
+        <BiSun size={ICONSIZE} className={CLASSNAMEFORICON} />
       )}
     </button>
   );

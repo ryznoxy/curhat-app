@@ -1,6 +1,6 @@
 import { getComments } from "@/services/Comments";
 import { getCurhatanDetail } from "@/services/getCurhatanDetail";
-import { getUserByEmail } from "@/services/getUserByEmail";
+import { getUserByUUID } from "@/services/getUserByEmail";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return new NextResponse("Bad Request", { status: 400 });
   }
 
-  const user = await getUserByEmail(curhatan.userEmail);
+  const user = await getUserByUUID(curhatan.userUuid);
 
   const username = user?.name;
   const pfpUrl = user?.pfp;
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const comments = await getComments(curhatanId);
 
   for (const comment of comments) {
-    const user = await getUserByEmail(comment.userEmail);
+    const user = await getUserByUUID(comment.userUuid);
     const username = user?.name;
     const pfpUrl = user?.pfp;
 

@@ -9,12 +9,15 @@ import { useToast } from "@/components/ui/use-toast";
 import CurhatanDetailLoading from "@/components/loading/curhatanDetailLoading";
 import { useUserSession } from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { addLike, removeLike } from "@/utils/LikeService";
+import { FiTrash } from "react-icons/fi";
 
 type Curhatan = {
   id: number;
   title: string;
   content: string;
   userEmail: string;
+  userUuid: string;
   createdAt: string;
   uuid: string;
   user: {
@@ -29,6 +32,7 @@ type commentList = {
   id: number;
   content: string;
   userEmail: string;
+  userUuid: string;
   postId: string;
   uuid: string;
   createdAt: string;
@@ -41,7 +45,7 @@ type commentList = {
 
 export default function CurhatanDetail({ params }: any) {
   const { user }: any = useUserSession();
-  const userEmail = user?.email;
+  const userUuid = user?.uuid;
 
   const toaster = useToast();
   const router = useRouter();
@@ -52,10 +56,21 @@ export default function CurhatanDetail({ params }: any) {
   const [curhatan, setCurhatan] = useState<Curhatan>({} as Curhatan);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [likedComments, setLikedComments] = useState<string[]>([]);
+  const [likedAnimate, setLikedAnimate] = useState({
+    liked: false,
+    id: "",
+  });
 
   const curhatanUuid = params.slug;
 
-  const isAuthor = curhatan?.userEmail === userEmail;
+  const isAuthor = curhatan?.userUuid === userUuid;
+
+  const handleLikeAnimate = (uuid: string) => {
+    setLikedAnimate({ liked: true, id: uuid });
+    setTimeout(() => {
+      setLikedAnimate({ liked: false, id: uuid });
+    }, 3000);
+  };
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -77,7 +92,7 @@ export default function CurhatanDetail({ params }: any) {
       setIsLoading(false);
       setCurhatan(data);
 
-      if (!userEmail) {
+      if (!userUuid) {
         setLikedComments([]);
         setLikedPosts([]);
         setLikedHistoryLoading(false);
@@ -90,7 +105,7 @@ export default function CurhatanDetail({ params }: any) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userEmail }),
+        body: JSON.stringify({ userUuid }),
       });
 
       const likeHistoryData = await likeHistoryResponse.json();
@@ -104,14 +119,14 @@ export default function CurhatanDetail({ params }: any) {
     };
 
     fetchDetail();
-  }, [curhatanUuid, userEmail]);
+  }, [curhatanUuid, userUuid]);
 
-  const addLike = async (
+  const handleAddLike = async (
     uuid: string,
-    userEmail: string,
+    userUuid: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userEmail) {
+    if (!userUuid) {
       toaster.toast({
         title: "Failed to add like",
         description: "Please login first",
@@ -119,15 +134,9 @@ export default function CurhatanDetail({ params }: any) {
       return;
     }
 
-    const respone = await fetch("/api/update-like", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ uuid, userEmail, postOrComment }),
-    });
+    const result = await addLike(uuid, userUuid, postOrComment);
 
-    if (!respone.ok) {
+    if (!result.success) {
       console.error("Failed to add like");
       toaster.toast({
         title: "Failed to add like",
@@ -139,6 +148,8 @@ export default function CurhatanDetail({ params }: any) {
     if (postOrComment === "post") {
       setCurhatan({ ...curhatan, likes: curhatan?.likes + 1 });
       setLikedPosts([...likedPosts, uuid]);
+
+      handleLikeAnimate(uuid);
     } else if (postOrComment === "comment") {
       setCurhatan({
         ...curhatan,
@@ -149,31 +160,26 @@ export default function CurhatanDetail({ params }: any) {
         ),
       });
       setLikedComments([...likedComments, uuid]);
+
+      handleLikeAnimate(uuid);
     }
   };
 
-  const removeLike = async (
+  const handleRemoveLike = async (
     uuid: string,
-    userEmail: string,
+    userUuid: string,
     postOrComment: "post" | "comment"
   ) => {
-    if (!userEmail) {
+    if (!userUuid) {
       return;
     }
 
-    const response = await fetch("/api/update-like", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ uuid, userEmail, postOrComment }),
-    });
+    const result = await removeLike(uuid, userUuid, postOrComment);
 
-    if (!response.ok) {
+    if (!result.success) {
       console.error("Failed to remove like");
       toaster.toast({
         title: "Failed to remove like",
-        description: "Please try again later",
       });
       return;
     }
@@ -195,7 +201,7 @@ export default function CurhatanDetail({ params }: any) {
   };
 
   const deleteComment = async (commentId: string) => {
-    if (!userEmail) {
+    if (!userUuid) {
       return;
     }
 
@@ -209,7 +215,7 @@ export default function CurhatanDetail({ params }: any) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ commentId, userEmail }),
+      body: JSON.stringify({ commentId, userUuid }),
     });
 
     if (!res.ok) {
@@ -251,7 +257,7 @@ export default function CurhatanDetail({ params }: any) {
     <div>
       <BackButton to="home" />
 
-      <div>
+      <div className="border-b mb-2 md:border-none md:md-0">
         <div className="flex items-center">
           <Image
             src={curhatan?.user?.pfpUrl}
@@ -271,39 +277,47 @@ export default function CurhatanDetail({ params }: any) {
           <h1 className="text-lg font-semibold">{curhatan?.title}</h1>
           <p>{curhatan?.content}</p>
         </div>
-        <div>
-          <button
-            onClick={() =>
-              likedPosts.includes(curhatan.uuid)
-                ? removeLike(curhatan.uuid, userEmail, "post")
-                : addLike(curhatan.uuid, userEmail, "post")
-            }
-            disabled={likedHistoryLoading}
-            className="disabled:cursor-not-allowed hover:scale-105 transition-all duration-300"
+        <button
+          onClick={() =>
+            likedPosts.includes(curhatan.uuid)
+              ? handleRemoveLike(curhatan.uuid, userUuid, "post")
+              : handleAddLike(curhatan.uuid, userUuid, "post")
+          }
+          disabled={likedHistoryLoading}
+          className="disabled:cursor-not-allowed hover:scale-105 transition-all duration-300"
+        >
+          <span
+            className={`inline-flex items-center ${
+              likedHistoryLoading ? "animate-pulse " : ""
+            }`}
           >
-            <span
-              className={`inline-flex items-center ${
-                likedHistoryLoading ? "animate-pulse " : ""
-              }`}
-            >
-              {likedPosts.includes(curhatan.uuid) ? (
-                <BiSolidHeart className="mr-1 text-red-500" size={32} />
-              ) : (
-                <BiHeart className="mr-1" size={32} />
-              )}
-              {!likedHistoryLoading && curhatan?.likes > 0
-                ? curhatan.likes
-                : null}
-            </span>
-          </button>
-        </div>
+            {likedPosts.includes(curhatan.uuid) ? (
+              <BiSolidHeart
+                className={`mr-1 text-red-500 rounded-full p-1  hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                  likedAnimate.liked &&
+                  likedAnimate.id === curhatan.uuid &&
+                  "animate-fade-scale"
+                }`}
+                size={40}
+              />
+            ) : (
+              <BiHeart
+                className="mr-1  rounded-full p-1 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                size={40}
+              />
+            )}
+            {!likedHistoryLoading && curhatan?.likes > 0
+              ? curhatan.likes
+              : null}
+          </span>
+        </button>
       </div>
 
       <div>
         {isLoading ? (
           <span className="block w-full h-6 bg-neutral-400 rounded-md animate-pulse"></span>
         ) : (
-          <MakeCommentPage postId={curhatan.uuid} userEmail={userEmail} />
+          <MakeCommentPage postId={curhatan.uuid} userUuid={userUuid} />
         )}
       </div>
 
@@ -345,8 +359,8 @@ export default function CurhatanDetail({ params }: any) {
               <button
                 onClick={() =>
                   likedComments.includes(comment.uuid)
-                    ? removeLike(comment.uuid, userEmail, "comment")
-                    : addLike(comment.uuid, userEmail, "comment")
+                    ? handleRemoveLike(comment.uuid, userUuid, "comment")
+                    : handleAddLike(comment.uuid, userUuid, "comment")
                 }
                 disabled={likedHistoryLoading}
                 className="disabled:cursor-not-allowed hover:scale-105 transition-all duration-300"
@@ -357,26 +371,36 @@ export default function CurhatanDetail({ params }: any) {
                   }`}
                 >
                   {likedComments.includes(comment.uuid) ? (
-                    <BiSolidHeart className="mr-1 text-red-500" size={32} />
+                    <BiSolidHeart
+                      className={`mr-1 text-red-500 rounded-full p-1  hover:bg-neutral-100 dark:hover:bg-neutral-800 ${
+                        likedAnimate.liked &&
+                        likedAnimate.id === comment.uuid &&
+                        "animate-fade-scale"
+                      }`}
+                      size={40}
+                    />
                   ) : (
-                    <BiHeart className="mr-1" size={32} />
+                    <BiHeart
+                      className="mr-1  rounded-full p-1 text-neutral-700 dark:text-neutral-300  hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                      size={40}
+                    />
                   )}
                   {!likedHistoryLoading && comment?.likes > 0
                     ? comment.likes
                     : null}
                 </span>
               </button>
-              {isAuthor && (
+              {/* {isAuthor && (
                 <button
                   onClick={() => deleteComment(comment.uuid)}
                   className="hover:scale-105 transition-all duration-300"
                 >
-                  <BiSolidTrash
-                    className="bg-red-500 text-white p-2 rounded-xl"
-                    size={32}
+                  <FiTrash
+                    className="mr-1  rounded-full p-1  hover:bg-neutral-100 "
+                    size={40}
                   />
                 </button>
-              )}
+              )} */}
             </div>
           </div>
         ))}
