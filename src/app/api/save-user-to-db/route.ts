@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     await prisma.user.create({
       data: {
         name: user.name,
+        uuid: user.uuid,
         email: user.email,
         pfp: user.image,
         createdAt: new Date(),

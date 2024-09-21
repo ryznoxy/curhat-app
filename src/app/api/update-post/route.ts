@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(request: Request) {
   const body = await request.json();
-  const { uuid, userEmail } = body;
-  if (!uuid || !userEmail) {
+  const { uuid, userUuid } = body;
+  if (!uuid || !userUuid) {
     return new NextResponse("Bad Request", { status: 400 });
   }
 

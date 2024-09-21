@@ -17,7 +17,7 @@ datasource db {
 model User {
   id Int @id @default(autoincrement())
 
-  uuid        String        @unique @default(uuid())
+  uuid        String        @unique
   name        String
   email       String        @unique
   pfp         String
@@ -41,9 +41,9 @@ model Post {
 
   likes Int @default(0)
 
-  user User @relation(fields: [userEmail], references: [email])
+  user User @relation(fields: [userUuid], references: [uuid])
 
-  userEmail String
+  userUuid String
 
   comments    Comment[]
   LikeHistory LikeHistory[]
@@ -59,8 +59,8 @@ model Comment {
 
   likes Int @default(0)
 
-  user      User   @relation(fields: [userEmail], references: [email])
-  userEmail String
+  user     User   @relation(fields: [userUuid], references: [uuid])
+  userUuid String
 
   post        Post          @relation(fields: [postId], references: [uuid], onDelete: Cascade)
   postId      String
@@ -70,8 +70,8 @@ model Comment {
 model LikeHistory {
   id Int @id @default(autoincrement())
 
-  user      User   @relation(fields: [userEmail], references: [email])
-  userEmail String
+  user     User   @relation(fields: [userUuid], references: [uuid])
+  userUuid String
 
   post   Post?   @relation(fields: [postId], references: [uuid], onDelete: Cascade)
   postId String?
@@ -81,6 +81,6 @@ model LikeHistory {
 
   createdAt DateTime @default(now())
 
-  @@unique([userEmail, postId], name: "LikeHistory_userId_postId_key")
-  @@unique([userEmail, commentId], name: "LikeHistory_userId_commentId_key")
+  @@unique([userUuid, postId], name: "LikeHistory_userId_postId_key")
+  @@unique([userUuid, commentId], name: "LikeHistory_userId_commentId_key")
 }

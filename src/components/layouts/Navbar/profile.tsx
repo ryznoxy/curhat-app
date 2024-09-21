@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useRef, useEffect, useState } from "react";
 import { BiLogIn, BiLogOut } from "react-icons/bi";
-import { FiEdit } from "react-icons/fi";
+import { FiEdit, FiEdit3 } from "react-icons/fi";
+import ThemeToggle from "./themeToggle";
 
 export default function Profile({ user }: any) {
   const dropdownMenuRef = useRef<HTMLDivElement>(null);
@@ -61,22 +62,24 @@ export default function Profile({ user }: any) {
   }, []);
 
   return (
-    <div className="flex gap-2 items-center">
-      <div>
-        {user && (
+    <div className="flex gap-4 items-center ">
+      <ThemeToggle />
+
+      {user && (
+        <div>
           <Link
             href="/new"
-            className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium p-2 md:py-2 md:px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
+            className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium p-2 md:py-2 md:px-4 w-full rounded-xl dark:hover:bg-neutral-800 transition-all duration-300"
           >
-            <FiEdit className="mr-1" size={20} />
             New
+            <FiEdit3 className="ml-1" size={20} />
           </Link>
-        )}
-      </div>
+        </div>
+      )}
 
       <div>
         {!user ? (
-          <div className="p-2">
+          <div className="mr-2">
             {/* <button
               onClick={() => {
                 handleLogIn();
@@ -87,9 +90,10 @@ export default function Profile({ user }: any) {
             </button> */}
             <Link
               href={`/auth/login?callbackUrl=${callbackUrl}`}
-              className="py-2 px-6 bg-neutral-700 hover:bg-neutral-900 dark:hover:bg-neutral-800 text-white text-sm font-medium rounded inline-flex items-center hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium p-2 md:py-2 md:px-4 w-full rounded-xl dark:hover:bg-neutral-800 transition-all duration-300"
             >
-              <BiLogIn className="mr-1" size={20} /> Login
+              Login
+              <BiLogIn className="ml-1" size={20} />
             </Link>
           </div>
         ) : (
@@ -107,7 +111,7 @@ export default function Profile({ user }: any) {
 
             <div
               ref={dropdownMenuRef}
-              className={`absolute top-16 right-0 bg-neutral-50 dark:bg-neutral-900 border rounded-md space-y-2 ${
+              className={`absolute top-16 right-0 bg-neutral-50 dark:bg-neutral-900 border rounded-2xl space-y-2 ${
                 isDropdownOpen ? "" : "hidden"
               }`}
             >
@@ -132,9 +136,9 @@ export default function Profile({ user }: any) {
                   onClick={() => {
                     handleLogOut();
                   }}
-                  className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium py-2 px-4 w-full rounded dark:hover:bg-neutral-800 transition-all duration-300"
+                  className="inline-flex items-center justify-center bg-neutral-700 hover:bg-neutral-900 text-white text-sm font-medium p-2 md:py-2 md:px-4 w-full rounded-xl dark:hover:bg-neutral-800 transition-all duration-300"
                 >
-                  <BiLogOut className="mr-1" size={20} /> Logout
+                  Logout <BiLogOut className="ml-1" size={20} />
                 </button>
               </div>
             </div>

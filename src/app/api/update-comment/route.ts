@@ -3,18 +3,18 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { content, postId, userEmail } = body;
-  if (!content || !postId || !userEmail) {
+  const { content, postId, userUuid } = body;
+  if (!content || !postId || !userUuid) {
     return new NextResponse("Bad Request", { status: 400 });
   }
 
-  await makeComment({ content, postId, userEmail });
+  await makeComment({ content, postId, userUuid });
   return NextResponse.json(
     {
       success: true,
       content,
       postId,
-      userEmail,
+      userUuid,
     },
     { status: 200 }
   );
@@ -22,8 +22,8 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   const body = await request.json();
-  const { commentId, userEmail } = body;
-  if (!commentId || !userEmail) {
+  const { commentId, userUuid } = body;
+  if (!commentId || !userUuid) {
     return new NextResponse("Bad Request", { status: 400 });
   }
 

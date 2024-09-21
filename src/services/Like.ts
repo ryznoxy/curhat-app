@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 
-const postAddLike = async (postId: string, userEmail: string) => {
+const postAddLike = async (postId: string, userUuid: string) => {
   await prisma.post.update({
     where: {
       uuid: postId,
@@ -14,13 +14,13 @@ const postAddLike = async (postId: string, userEmail: string) => {
 
   return await prisma.likeHistory.create({
     data: {
-      userEmail,
+      userUuid,
       postId,
     },
   });
 };
 
-const postRemoveLike = async (postId: string, userEmail: string) => {
+const postRemoveLike = async (postId: string, userUuid: string) => {
   await prisma.post.update({
     where: {
       uuid: postId,
@@ -35,14 +35,14 @@ const postRemoveLike = async (postId: string, userEmail: string) => {
   return await prisma.likeHistory.delete({
     where: {
       LikeHistory_userId_postId_key: {
-        userEmail,
+        userUuid,
         postId,
       },
     },
   });
 };
 
-const commentAddLike = async (commentId: string, userEmail: string) => {
+const commentAddLike = async (commentId: string, userUuid: string) => {
   await prisma.comment.updateMany({
     where: {
       uuid: commentId,
@@ -56,13 +56,13 @@ const commentAddLike = async (commentId: string, userEmail: string) => {
 
   return await prisma.likeHistory.createMany({
     data: {
-      userEmail,
+      userUuid,
       commentId,
     },
   });
 };
 
-const commentRemoveLike = async (commentId: string, userEmail: string) => {
+const commentRemoveLike = async (commentId: string, userUuid: string) => {
   await prisma.comment.update({
     where: {
       uuid: commentId,
@@ -77,17 +77,17 @@ const commentRemoveLike = async (commentId: string, userEmail: string) => {
   return await prisma.likeHistory.deleteMany({
     where: {
       commentId,
-      userEmail,
+      userUuid,
     },
   });
 };
 
 const isLikedByUser = async (
   uuid: string,
-  userEmail: string,
+  userUuid: string,
   postOrComment: "post" | "comment"
 ) => {
-  if (!userEmail) {
+  if (!userUuid) {
     return false;
   }
 
@@ -95,14 +95,14 @@ const isLikedByUser = async (
     return await prisma.likeHistory.findFirst({
       where: {
         postId: uuid,
-        userEmail,
+        userUuid,
       },
     });
   } else if (postOrComment === "comment") {
     return await prisma.likeHistory.findFirst({
       where: {
         commentId: uuid,
-        userEmail,
+        userUuid,
       },
     });
   }

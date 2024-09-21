@@ -31,13 +31,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const { userEmail } = body;
+  const { userUuid } = body;
 
-  if (!userEmail) {
+  if (!userUuid) {
     return new NextResponse("Bad Request", { status: 400 });
   }
 
-  const likeHistory = await getLikeHistory(userEmail);
+  const likeHistory = await getLikeHistory(userUuid);
   const likeHistoryJSON = JSON.parse(JSON.stringify(likeHistory));
 
   const postsLiked = likeHistoryJSON

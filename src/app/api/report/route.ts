@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const { postId, userName, userEmail, reason } = await request.json();
+  const { postId, userName, userUuid, reason } = await request.json();
 
-  if (!postId || !userName || !userEmail || !reason) {
+  if (!postId || !userName || !userUuid || !reason) {
     return NextResponse.json("Bad Request", { status: 400 });
   }
 
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         fields: [
           {
             name: "Reported by:",
-            value: `${userName} | ${userEmail}`,
+            value: `${userName} | ${userUuid}`,
           },
           {
             name: "Reason:",

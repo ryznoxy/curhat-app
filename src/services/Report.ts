@@ -10,10 +10,10 @@ export const ReasonList = [
 export const report = async (
   postId: string,
   userName: string,
-  userEmail: string,
+  userUuid: string,
   reason: string
 ) => {
-  if (!userEmail) {
+  if (!userUuid) {
     return;
   }
   const res = await fetch("/api/report", {
@@ -21,7 +21,7 @@ export const report = async (
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ postId, userName, userEmail, reason }),
+    body: JSON.stringify({ postId, userName, userUuid, reason }),
   });
 
   let isError = false;

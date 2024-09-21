@@ -3,7 +3,7 @@ import prisma from "@/lib/prisma";
 interface CommentProps {
   content: string;
   postId: string;
-  userEmail: string;
+  userUuid: string;
 }
 
 const getComments = async (postId: string) => {
@@ -17,12 +17,12 @@ const getComments = async (postId: string) => {
   });
 };
 
-const makeComment = async ({ content, postId, userEmail }: CommentProps) => {
+const makeComment = async ({ content, postId, userUuid }: CommentProps) => {
   return await prisma.comment.create({
     data: {
       content,
       postId,
-      userEmail,
+      userUuid,
       createdAt: new Date(),
       updatedAt: new Date(),
     },
